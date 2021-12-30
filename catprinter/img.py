@@ -87,6 +87,20 @@ def halfdone_dither(img):
     return canvas
 
 
+def canny_edge(img):
+    """Perform a canny edge detection on the image.
+    This works good for images with strong countours.
+    The tresholds are automatically detected using Otsu's method: 
+    https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.402.5899&rep=rep1&type=pdf
+    """
+    #blur_kernel = (3, 3)
+    #img = cv2.blur(img, blur_kernel)
+    otsu_threshold, _ = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    #edges = cv2.Canny(img, otsu_threshold/2, otsu_threshold)
+    edges = cv2.Canny(img, 0, 255)
+    return ~edges 
+
+
 def read_img(
         filename,
         print_width,
@@ -117,6 +131,9 @@ def read_img(
         resized = resized > 127
     elif img_binarization_algo == 'mean-threshold':
         resized = resized > resized.mean()
+    elif img_binarization_algo == 'canny':
+        logger.info('⏳ Applying Canny edge detection to image...')
+        resized = canny_edge(resized)
     else:
         logger.error(
             f'🛑 Unknown image binarization algorithm: {img_binarization_algo}')
